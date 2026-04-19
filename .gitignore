@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+.pytest_cache/
+tests/__pycache__/
+app/__pycache__/
+app/*/__pycache__/
+.coverage
+htmlcov/
+*.sqlite
+instance/
