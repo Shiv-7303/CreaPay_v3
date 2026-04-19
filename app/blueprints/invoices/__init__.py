@@ -50,16 +50,22 @@ def auto_generate_invoice(deal):
     db.session.flush() # get invoice ID without committing yet
     
     # Generate PDF
-    from app.utils.pdf import generate_invoice_pdf_bytes
     from app.utils.storage import upload_pdf_to_r2
-    
-    pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, deal.user)
-    
-    # Upload to R2
-    filename = f"invoice_{invoice_number}_{deal.id}.pdf"
-    pdf_url = upload_pdf_to_r2(pdf_bytes, filename)
-    
-    invoice.pdf_url = pdf_url
+    try:
+        from app.utils.pdf import generate_invoice_pdf_bytes
+        pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, deal.user)
+        
+        # Upload to R2
+        filename = f"invoice_{invoice_number}_{deal.id}.pdf"
+        pdf_url = upload_pdf_to_r2(pdf_bytes, filename)
+        invoice.pdf_url = pdf_url
+    except OSError as e:
+        print(f"WARNING: Skipping PDF generation. WeasyPrint requires GTK3 on Windows. Error: {e}")
+        invoice.pdf_url = None
+    except Exception as e:
+        print(f"Error generating PDF: {e}")
+        invoice.pdf_url = None
+        
     return invoice
 
 @invoices_bp.route('/<deal_id>/pdf', methods=['GET'])
@@ -69,13 +75,15 @@ def download_invoice_pdf(deal_id):
     deal = invoice.deal
     user = current_user
     
-    from app.utils.pdf import generate_invoice_pdf_bytes
-    pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, user)
-    
-    response = make_response(pdf_bytes)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = f'inline; filename=invoice_{invoice.invoice_number}.pdf'
-    return response
+    try:
+        from app.utils.pdf import generate_invoice_pdf_bytes
+        pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, user)
+        response = make_response(pdf_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'inline; filename=invoice_{invoice.invoice_number}.pdf'
+        return response
+    except Exception as e:
+        return jsonify({"error": f"PDF generation failed, likely missing GTK3 for WeasyPrint on Windows. Error: {e}"}), 500
 
 @invoices_bp.route('/<deal_id>/regenerate', methods=['POST'])
 @login_required
@@ -94,16 +102,19 @@ def regenerate_invoice(deal_id):
     if invoice.pdf_url:
         delete_from_r2(invoice.pdf_url)
         
-    # 2. Regenerate PDF bytes
-    pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, user)
-    
-    # 3. Upload new PDF
-    filename = f"invoice_{invoice.invoice_number}_{deal.id}.pdf"
-    new_pdf_url = upload_pdf_to_r2(pdf_bytes, filename)
-    
-    # 4. Save
-    invoice.pdf_url = new_pdf_url
-    invoice.generated_at = datetime.now() # update timestamp to show it's new
-    db.session.commit()
-    
-    return jsonify({'status': 'regenerated', 'pdf_url': new_pdf_url}), 200
+    try:
+        # 2. Regenerate PDF bytes
+        pdf_bytes = generate_invoice_pdf_bytes(invoice, deal, user)
+        
+        # 3. Upload new PDF
+        filename = f"invoice_{invoice.invoice_number}_{deal.id}.pdf"
+        new_pdf_url = upload_pdf_to_r2(pdf_bytes, filename)
+        
+        # 4. Save
+        invoice.pdf_url = new_pdf_url
+        invoice.generated_at = datetime.now() # update timestamp to show it's new
+        db.session.commit()
+        
+        return jsonify({'status': 'regenerated', 'pdf_url': new_pdf_url}), 200
+    except Exception as e:
+        return jsonify({"error": f"PDF regeneration failed. Error: {e}"}), 500
