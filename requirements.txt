@@ -8,6 +8,7 @@ python-dotenv==1.0.1
 bcrypt==4.2.0
 pytz==2024.2
 WeasyPrint==62.3
+pydyf==0.10.0
 razorpay==1.4.1
 resend==2.4.0
 sentry-sdk[flask]==2.14.0
