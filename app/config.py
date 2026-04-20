@@ -1,8 +1,12 @@
 import os
+from datetime import timedelta
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-prod'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # Session Config
+    REMEMBER_COOKIE_DURATION = timedelta(days=30)
     
     # DB Config
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:postgres@localhost:5432/creapay'
