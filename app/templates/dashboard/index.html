@@ -208,6 +208,9 @@
     <div id="dealModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-xl w-full max-w-md">
             <h2 class="text-xl font-bold mb-4">Create New Deal</h2>
+            <div id="dealErrors" class="hidden mb-4 bg-red-50 text-red-700 p-3 rounded-lg border border-red-200 text-sm font-medium">
+                <!-- Errors injected here -->
+            </div>
             <form id="dealForm">
                 <div class="mb-3">
                     <label class="block text-sm font-medium text-gray-700">Brand Name</label>
@@ -247,7 +250,10 @@
     </div>
 
     <script>
-        function openDealModal() { document.getElementById('dealModal').classList.remove('hidden'); }
+        function openDealModal() { 
+            document.getElementById('dealErrors').classList.add('hidden');
+            document.getElementById('dealModal').classList.remove('hidden'); 
+        }
         function closeDealModal() { document.getElementById('dealModal').classList.add('hidden'); }
         
         function openUpgradeModal() { document.getElementById('upgradeModal').classList.remove('hidden'); }
@@ -255,6 +261,12 @@
         
         document.getElementById('dealForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btn = e.target.querySelector("button[type='submit']");
+            const errDiv = document.getElementById('dealErrors');
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+            errDiv.classList.add('hidden');
+            
             const payload = {
                 brand_name: document.getElementById('brand_name').value,
                 amount: document.getElementById('amount').value,
@@ -263,19 +275,30 @@
                 notes: document.getElementById('notes').value
             };
             
-            const res = await fetch('/deals/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            
-            if (res.ok) {
-                window.location.reload();
-            } else if (res.status === 402) {
-                closeDealModal();
-                openUpgradeModal();
-            } else {
-                alert("Failed to create deal.");
+            try {
+                const res = await fetch('/deals/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    window.location.reload();
+                } else if (res.status === 402) {
+                    closeDealModal();
+                    openUpgradeModal();
+                } else {
+                    errDiv.innerText = data.error || "Failed to create deal. Please check your inputs and try again.";
+                    errDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errDiv.innerText = "Network error. Please try again later.";
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Save Deal";
             }
         });
         

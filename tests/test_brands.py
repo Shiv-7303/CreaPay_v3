@@ -54,7 +54,7 @@ def test_brand_name_validation(auth_client, app):
         'content_type': 'post'
     })
     assert res.status_code == 400
-    assert 'required' in res.json['error']
+    assert 'valid brand name' in res.json['error']
     
     # Test long name
     res = client.post('/deals/create', json={
@@ -63,7 +63,7 @@ def test_brand_name_validation(auth_client, app):
         'content_type': 'post'
     })
     assert res.status_code == 400
-    assert 'exceed' in res.json['error']
+    assert 'too long' in res.json['error']
 
 def test_brand_search_results(auth_client, app):
     client, user_id = auth_client

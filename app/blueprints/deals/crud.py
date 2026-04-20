@@ -32,14 +32,19 @@ def create_deal():
     
     brand_name = data.get('brand_name')
     if not brand_name or not brand_name.strip():
-        return jsonify({'error': 'Brand name is required'}), 400
+        return jsonify({'error': 'Please provide a valid brand name.'}), 400
         
     brand_name = brand_name.strip()
     if len(brand_name) > 255:
-        return jsonify({'error': 'Brand name cannot exceed 255 characters'}), 400
+        return jsonify({'error': 'Brand name is too long. Please keep it under 255 characters.'}), 400
         
     amount = data.get('amount')
+    if not amount or float(amount) < 0:
+        return jsonify({'error': 'Please enter a valid deal amount.'}), 400
+        
     content_type = data.get('content_type')
+    if not content_type:
+        return jsonify({'error': 'Please select a content type.'}), 400
     due_date_str = data.get('due_date')
     tds_applicable = str(data.get('tds_applicable', 'false')).lower() == 'true'
     notes = data.get('notes')
