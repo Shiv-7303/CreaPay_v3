@@ -231,6 +231,10 @@
                         <option value="other">Other</option>
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700">Due Date</label>
+                    <input type="date" id="due_date" class="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                </div>
                 <div class="mb-4">
                     <label class="flex items-center">
                         <input type="checkbox" id="tds" class="rounded border-gray-300 text-brand-purple">
@@ -252,7 +256,15 @@
     <script>
         function openDealModal() { 
             document.getElementById('dealErrors').classList.add('hidden');
-            document.getElementById('dealModal').classList.remove('hidden'); 
+            document.getElementById('dealModal').classList.remove('hidden');
+            
+            // Set default due date to 30 days from now
+            const dateInput = document.getElementById('due_date');
+            if (!dateInput.value) {
+                const d = new Date();
+                d.setDate(d.getDate() + 30);
+                dateInput.value = d.toISOString().split('T')[0];
+            }
         }
         function closeDealModal() { document.getElementById('dealModal').classList.add('hidden'); }
         
@@ -271,6 +283,7 @@
                 brand_name: document.getElementById('brand_name').value,
                 amount: document.getElementById('amount').value,
                 content_type: document.getElementById('content_type').value,
+                due_date: document.getElementById('due_date').value,
                 tds_applicable: document.getElementById('tds').checked,
                 notes: document.getElementById('notes').value
             };

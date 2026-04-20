@@ -118,3 +118,20 @@ def test_soft_delete(auth_client, app):
     with app.app_context():
         deal = Deal.query.get(deal_id)
         assert deal.deleted_at is not None
+
+def test_hard_delete(auth_client, app):
+    client, user_id = auth_client
+    
+    res = client.post('/deals/create', json={
+        'brand_name': 'Hard Delete Brand',
+        'amount': '1000',
+        'content_type': 'story'
+    })
+    deal_id = res.json['id']
+    
+    res = client.delete(f'/deals/{deal_id}?hard=true')
+    assert res.status_code == 200
+    
+    with app.app_context():
+        deal = Deal.query.get(deal_id)
+        assert deal is None

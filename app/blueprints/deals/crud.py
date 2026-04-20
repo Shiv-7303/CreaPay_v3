@@ -163,8 +163,23 @@ def remind_deal(deal_id):
 @deals_bp.route('/<deal_id>', methods=['DELETE'])
 @login_required
 def delete_deal(deal_id):
-    deal = Deal.query.filter_by(id=deal_id, user_id=current_user.id, deleted_at=None).first_or_404()
-    deal.deleted_at = datetime.now()
-    deal.brand.total_deals -= 1
-    db.session.commit()
-    return jsonify({'message': 'Deal deleted successfully'}), 200
+    hard_delete = request.args.get('hard') == 'true'
+    
+    if hard_delete:
+        deal = Deal.query.filter_by(id=deal_id, user_id=current_user.id).first_or_404()
+        if deal.deleted_at is None:
+            deal.brand.total_deals -= 1
+            
+        # Also clean up invoice if it exists
+        if deal.invoice:
+            db.session.delete(deal.invoice)
+            
+        db.session.delete(deal)
+        db.session.commit()
+        return jsonify({'message': 'Deal hard deleted successfully'}), 200
+    else:
+        deal = Deal.query.filter_by(id=deal_id, user_id=current_user.id, deleted_at=None).first_or_404()
+        deal.deleted_at = datetime.now()
+        deal.brand.total_deals -= 1
+        db.session.commit()
+        return jsonify({'message': 'Deal soft deleted successfully'}), 200
