@@ -1,3 +1,5 @@
+import os
+import resend
 from app import celery, db
 from app.models.deal import Deal
 from datetime import datetime
@@ -18,8 +20,24 @@ def check_and_mark_overdue():
     ).all()
     
     count = len(overdue_deals)
+    
+    resend_api_key = os.environ.get('RESEND_API_KEY')
+    
     for deal in overdue_deals:
         deal.status = 'overdue'
+        
+        # Pro Feature: Send email notification to creator
+        if deal.user.plan == 'pro' and resend_api_key and os.environ.get('FLASK_ENV') != 'testing':
+            try:
+                resend.api_key = resend_api_key
+                resend.Emails.send({
+                    "from": "notifications@creapay.in",
+                    "to": deal.user.email,
+                    "subject": f"Deal Overdue: {deal.brand.name}",
+                    "html": f"<p>Hi {deal.user.full_name},</p><p>Your deal with <b>{deal.brand.name}</b> for Rs. {deal.amount} is now officially overdue.</p><p>Consider logging in to send them a payment reminder.</p>"
+                })
+            except Exception as e:
+                print(f"Failed to send overdue email to {deal.user.email}: {e}")
         
     db.session.commit()
     
