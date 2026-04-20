@@ -87,7 +87,31 @@ def create_app(config_name='default'):
     
     @app.route('/')
     def index():
-        return "Empty Dashboard / Landing"
+        from flask_login import current_user
+        from flask import redirect, url_for
+        
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard.index'))
+            
+        # Basic landing page logic as requested in "empty dashboard loads at /"
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>CreaPay</title>
+            <style>
+                body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+                a { display: inline-block; padding: 10px 20px; background: #6C47FF; color: white; text-decoration: none; border-radius: 5px; margin: 10px; }
+            </style>
+        </head>
+        <body>
+            <h1>Welcome to CreaPay</h1>
+            <p>Manage your deals and invoices.</p>
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Register</a>
+        </body>
+        </html>
+        """
         
     @app.route('/health')
     def health():

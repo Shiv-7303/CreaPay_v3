@@ -18,7 +18,7 @@ def test_app_starts(client):
     """Test that the app can be initialized and root returns 200"""
     response = client.get('/')
     assert response.status_code == 200
-    assert b"Empty Dashboard" in response.data
+    assert b"Welcome to CreaPay" in response.data
 
 def test_health_check(client):
     response = client.get('/health')
