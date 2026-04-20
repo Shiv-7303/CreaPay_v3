@@ -11,3 +11,4 @@ app/*/__pycache__/
 htmlcov/
 *.sqlite
 instance/
+app/app.db
