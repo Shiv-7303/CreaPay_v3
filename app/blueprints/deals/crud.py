@@ -31,8 +31,12 @@ def create_deal():
     data = request.json or request.form
     
     brand_name = data.get('brand_name')
-    if not brand_name:
+    if not brand_name or not brand_name.strip():
         return jsonify({'error': 'Brand name is required'}), 400
+        
+    brand_name = brand_name.strip()
+    if len(brand_name) > 255:
+        return jsonify({'error': 'Brand name cannot exceed 255 characters'}), 400
         
     amount = data.get('amount')
     content_type = data.get('content_type')

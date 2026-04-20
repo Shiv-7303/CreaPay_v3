@@ -44,6 +44,27 @@ def test_brand_search_empty(auth_client, app):
     assert response.status_code == 200
     assert response.json == []
 
+def test_brand_name_validation(auth_client, app):
+    client, user_id = auth_client
+    
+    # Test empty name
+    res = client.post('/deals/create', json={
+        'brand_name': '   ',
+        'amount': '5000',
+        'content_type': 'post'
+    })
+    assert res.status_code == 400
+    assert 'required' in res.json['error']
+    
+    # Test long name
+    res = client.post('/deals/create', json={
+        'brand_name': 'a' * 256,
+        'amount': '5000',
+        'content_type': 'post'
+    })
+    assert res.status_code == 400
+    assert 'exceed' in res.json['error']
+
 def test_brand_search_results(auth_client, app):
     client, user_id = auth_client
     
