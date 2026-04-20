@@ -25,9 +25,10 @@ def generate_invoice_pdf_bytes(invoice, deal, user):
 
     # Header
     # User / Creator info on left, Invoice title on right
+    gst_str = f"<br/>GSTIN: {user.gst_number}" if getattr(user, 'gst_number', None) else ""
     header_data = [
         [Paragraph(f"<b>{user.full_name}</b>", bold_style), Paragraph("INVOICE", title_style)],
-        [Paragraph(f"{user.email}", normal_style), Paragraph(f"#{invoice.invoice_number}", ParagraphStyle('RightNorm', alignment=2))],
+        [Paragraph(f"{user.email}{gst_str}", normal_style), Paragraph(f"#{invoice.invoice_number}", ParagraphStyle('RightNorm', alignment=2))],
         ["", Paragraph(f"Date: {invoice.generated_at.strftime('%Y-%m-%d')}", ParagraphStyle('RightNorm', alignment=2))]
     ]
     

@@ -62,6 +62,22 @@ def test_invoice_generation(auth_client, app):
         assert invoice.tds_amount == 1000
         assert invoice.net_amount == 9000
         
+def test_invoice_whatsapp(auth_client, app):
+    client, user_id = auth_client
+    
+    # Create deal
+    res = client.post('/deals/create', json={
+        'brand_name': 'Whatsapp Brand',
+        'amount': '5000',
+        'content_type': 'post'
+    })
+    deal_id = res.json['id']
+    
+    res = client.get(f'/invoices/{deal_id}/share/whatsapp')
+    assert res.status_code == 200
+    assert 'whatsapp_url' in res.json
+    assert 'wa.me' in res.json['whatsapp_url']
+
 def test_invoice_download(auth_client, app):
     client, user_id = auth_client
     

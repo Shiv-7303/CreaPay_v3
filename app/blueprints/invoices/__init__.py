@@ -65,6 +65,25 @@ def auto_generate_invoice(deal):
         
     return invoice
 
+import urllib.parse
+
+@invoices_bp.route('/<deal_id>/share/whatsapp', methods=['GET'])
+@login_required
+def share_whatsapp(deal_id):
+    invoice = Invoice.query.filter_by(deal_id=deal_id, user_id=current_user.id).first_or_404()
+    if not invoice.pdf_url:
+        return jsonify({"error": "Invoice PDF not available yet"}), 400
+        
+    deal = invoice.deal
+    phone = getattr(deal.brand, 'phone', '') or '' # Future-proof for brand phone field
+    
+    message = f"Hello {deal.brand.name},\n\nHere is the invoice #{invoice.invoice_number} for our recent collaboration: {invoice.pdf_url}\n\nAmount Due: Rs. {invoice.net_amount}\nDue Date: {deal.due_date.strftime('%d %b %Y')}\n\nThanks,\n{current_user.full_name}"
+    encoded_message = urllib.parse.quote(message)
+    
+    url = f"https://wa.me/{phone}?text={encoded_message}"
+    
+    return jsonify({"whatsapp_url": url})
+
 @invoices_bp.route('/<deal_id>/pdf', methods=['GET'])
 @login_required
 def download_invoice_pdf(deal_id):

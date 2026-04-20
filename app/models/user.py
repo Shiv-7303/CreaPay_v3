@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     full_name = db.Column(db.String(255), nullable=False)
     plan = db.Column(db.String(20), default='free', nullable=False)
     logo_url = db.Column(db.Text, nullable=True)
+    gst_number = db.Column(db.String(15), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
