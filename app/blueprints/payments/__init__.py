@@ -13,9 +13,7 @@ def get_razorpay_client():
     key_id = current_app.config.get('RAZORPAY_KEY_ID')
     key_secret = current_app.config.get('RAZORPAY_KEY_SECRET')
     if not key_id or not key_secret:
-        # Avoid breaking in tests when variables aren't strictly required to exist 
-        # unless hitting real endpoint
-        pass
+        raise ValueError("Razorpay API keys (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET) are not configured in the environment.")
     return razorpay.Client(auth=(key_id, key_secret))
 
 @payments_bp.route('/create-order', methods=['POST'])
@@ -29,7 +27,10 @@ def create_order():
             'currency': 'INR'
         }), 200
         
-    client = get_razorpay_client()
+    try:
+        client = get_razorpay_client()
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 500
     
     amount = current_app.config.get('PRO_PLAN_PRICE', 29900)
     
