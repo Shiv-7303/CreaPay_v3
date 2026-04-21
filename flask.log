@@ -1,39 +1,7 @@
  * Serving Flask app 'run.py'
  * Debug mode: off
 [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
- * Running on http://192.168.0.2:5000
 [33mPress CTRL+C to quit[0m
-127.0.0.1 - - [19/Apr/2026 03:53:29] "GET /auth/register HTTP/1.1" 200 -
-127.0.0.1 - - [19/Apr/2026 03:53:30] "[32mPOST /auth/register HTTP/1.1[0m" 302 -
-127.0.0.1 - - [19/Apr/2026 03:53:30] "GET /dashboard/ HTTP/1.1" 200 -
-127.0.0.1 - - [19/Apr/2026 03:54:30] "GET /auth/register HTTP/1.1" 200 -
-127.0.0.1 - - [19/Apr/2026 03:54:31] "[32mPOST /auth/register HTTP/1.1[0m" 302 -
-127.0.0.1 - - [19/Apr/2026 03:54:31] "GET /dashboard/ HTTP/1.1" 200 -
-[2026-04-19 03:54:33,004] ERROR in app: Exception on /deals/create [POST]
-Traceback (most recent call last):
-  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/flask/app.py", line 1473, in wsgi_app
-    response = self.full_dispatch_request()
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/flask/app.py", line 882, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/flask/app.py", line 880, in full_dispatch_request
-    rv = self.dispatch_request()
-         ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/flask/app.py", line 865, in dispatch_request
-    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/flask_login/utils.py", line 290, in decorated_view
-    return current_app.ensure_sync(func)(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/app/app/blueprints/deals/crud.py", line 86, in create_deal
-    auto_generate_invoice(deal)
-  File "/app/app/blueprints/invoices/__init__.py", line 60, in auto_generate_invoice
-    pdf_url = upload_pdf_to_r2(pdf_bytes, filename)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/app/app/utils/storage.py", line 25, in upload_pdf_to_r2
-    raise ValueError("R2_BUCKET_NAME not configured")
-ValueError: R2_BUCKET_NAME not configured
-127.0.0.1 - - [19/Apr/2026 03:54:33] "[35m[1mPOST /deals/create HTTP/1.1[0m" 500 -
+127.0.0.1 - - [21/Apr/2026 05:28:55] "GET /auth/register HTTP/1.1" 200 -
+127.0.0.1 - - [21/Apr/2026 05:28:56] "POST /auth/register HTTP/1.1" 200 -

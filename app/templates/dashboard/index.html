@@ -201,10 +201,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                 </svg>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Upgrade Required</h2>
-            <p class="text-gray-600 mb-6">You've used 3/3 free deals. Upgrade to Pro for ₹299/month for unlimited deals, custom branding, and automated reminders!</p>
+            <h2 class="text-2xl font-bold mb-2" id="upgradeModalTitle">Upgrade Required</h2>
+            <p class="text-gray-600 mb-6" id="upgradeModalDesc">Upgrade to Pro for ₹299/month to unlock unlimited deals, custom branding, and automated reminders!</p>
             <div class="flex flex-col gap-3">
-                <button onclick="window.location.href='#'" class="w-full py-3 bg-brand-purple text-white rounded-lg font-bold hover:bg-purple-700 shadow-md">Upgrade to Pro Now</button>
+                <button id="rzp-button" class="w-full py-3 bg-brand-purple text-white rounded-lg font-bold hover:bg-purple-700 shadow-md">Upgrade to Pro Now</button>
                 <button onclick="closeUpgradeModal()" class="w-full py-3 text-gray-600 hover:bg-gray-100 rounded-lg font-medium">Cancel</button>
             </div>
         </div>
@@ -259,7 +259,61 @@
         </div>
     </div>
 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+        // Razorpay Checkout Integration
+        const rzpBtn = document.getElementById('rzp-button');
+        if (rzpBtn) {
+            rzpBtn.onclick = async function(e){
+                e.preventDefault();
+                rzpBtn.innerText = "Processing...";
+                rzpBtn.disabled = true;
+                
+                try {
+                    // 1. Create order on backend
+                    const response = await fetch('/payments/create-order', { method: 'POST' });
+                    const orderData = await response.json();
+                    
+                    if (response.ok) {
+                        // 2. Initialize Razorpay
+                        var options = {
+                            "key": orderData.key_id, // In production this would be rendered from config
+                            "amount": orderData.amount,
+                            "currency": orderData.currency,
+                            "name": "CreaPay Pro",
+                            "description": "Upgrade to Pro Plan",
+                            "order_id": orderData.id,
+                            "handler": function (response) {
+                                // On success, the backend webhook will upgrade the user.
+                                // We can just reload the page to see the new Pro status.
+                                alert("Payment Successful! Welcome to Pro.");
+                                window.location.reload();
+                            },
+                            "prefill": {
+                                "name": "{{ current_user.full_name }}",
+                                "email": "{{ current_user.email }}"
+                            },
+                            "theme": {
+                                "color": "#6C47FF"
+                            }
+                        };
+                        var rzp1 = new Razorpay(options);
+                        rzp1.on('payment.failed', function (response){
+                            alert("Payment Failed. Reason: " + response.error.description);
+                        });
+                        rzp1.open();
+                    } else {
+                        alert("Error initiating payment: " + (orderData.error || "Unknown error"));
+                    }
+                } catch (err) {
+                    alert("Network error: Could not reach payment server.");
+                } finally {
+                    rzpBtn.innerText = "Upgrade to Pro Now";
+                    rzpBtn.disabled = false;
+                }
+            }
+        }
+
         function openDealModal() { 
             document.getElementById('dealErrors').classList.add('hidden');
             document.getElementById('dealModal').classList.remove('hidden');
