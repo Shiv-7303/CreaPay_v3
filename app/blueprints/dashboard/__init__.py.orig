@@ -87,12 +87,6 @@ def export_csv():
 @dashboard_bp.route('/')
 @login_required
 def index():
-    # Check subscription expiry
-    from app import db
-    if current_user.plan == 'pro' and current_user.plan_expires_at and current_user.plan_expires_at < datetime.now():
-        current_user.plan = 'free'
-        db.session.commit()
-
     deals = Deal.query.filter_by(user_id=current_user.id, deleted_at=None).all()
     
     # Custom sorting logic based on the spec

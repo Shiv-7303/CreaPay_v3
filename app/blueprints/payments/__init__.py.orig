@@ -96,7 +96,6 @@ def webhook():
         )
         
         user.plan = 'pro'
-        user.plan_expires_at = now + timedelta(days=30)
         
         db.session.add(sub)
         db.session.commit()
