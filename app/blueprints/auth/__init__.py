@@ -111,3 +111,15 @@ def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/dev/toggle-pro', methods=['GET'])
+@login_required
+def toggle_pro():
+    if current_user.plan == 'pro':
+        current_user.plan = 'free'
+        flash("You are now a Free user.", "info")
+    else:
+        current_user.plan = 'pro'
+        flash("You are now a Pro user for testing.", "success")
+    db.session.commit()
+    return redirect(url_for('dashboard.index'))
