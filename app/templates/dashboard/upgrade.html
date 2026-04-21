@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Upgrade to CreaPay Pro</h1>
+        <p class="text-xl text-gray-600">Take your freelancing business to the next level with our premium tools.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <!-- Free Plan -->
+            <div class="p-8 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50">
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Free Plan</h2>
+                <div class="text-gray-500 mb-6">Perfect for getting started</div>
+                <div class="text-4xl font-extrabold text-gray-900 mb-8">₹0<span class="text-lg font-medium text-gray-500">/month</span></div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-600">Up to 3 active deals</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-600">Standard PDF invoices</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-600">Basic dashboard</span>
+                    </li>
+                    <li class="flex items-start opacity-50">
+                        <svg class="h-6 w-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span class="text-gray-500 line-through">Automated payment reminders</span>
+                    </li>
+                    <li class="flex items-start opacity-50">
+                        <svg class="h-6 w-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span class="text-gray-500 line-through">Custom branding (Logo)</span>
+                    </li>
+                    <li class="flex items-start opacity-50">
+                        <svg class="h-6 w-6 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <span class="text-gray-500 line-through">Advanced Brand Reports & CSV</span>
+                    </li>
+                </ul>
+                
+                {% if current_user.plan == 'free' %}
+                <button disabled class="w-full py-3 px-4 bg-gray-200 text-gray-500 rounded-lg font-bold">Current Plan</button>
+                {% else %}
+                <button disabled class="w-full py-3 px-4 bg-gray-200 text-gray-500 rounded-lg font-bold opacity-50">Free Tier</button>
+                {% endif %}
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="p-8 relative">
+                <div class="absolute top-0 right-0 bg-brand-purple text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg uppercase tracking-wide">
+                    Recommended
+                </div>
+                <h2 class="text-2xl font-bold text-brand-purple mb-2">Pro Plan</h2>
+                <div class="text-brand-purple opacity-80 mb-6">For serious creators</div>
+                <div class="text-4xl font-extrabold text-gray-900 mb-8">₹299<span class="text-lg font-medium text-gray-500">/month</span></div>
+                
+                <ul class="space-y-4 mb-8">
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-brand-purple mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-800 font-medium">Unlimited deals</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-brand-purple mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-800 font-medium">Automated payment reminders via Email</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-brand-purple mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-800 font-medium">Custom branding (Logo on invoices)</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-brand-purple mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-800 font-medium">1-Click WhatsApp Reminders</span>
+                    </li>
+                    <li class="flex items-start">
+                        <svg class="h-6 w-6 text-brand-purple mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-gray-800 font-medium">Brand Intelligence Reports & CSV Exports</span>
+                    </li>
+                </ul>
+                
+                {% if current_user.plan == 'pro' %}
+                <button disabled class="w-full py-3 px-4 bg-green-500 text-white rounded-lg font-bold flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    You are Pro
+                </button>
+                {% else %}
+                <button id="rzp-button-page" class="w-full py-3 px-4 bg-brand-purple hover:bg-purple-700 text-white rounded-lg font-bold shadow-lg transition transform hover:-translate-y-0.5">
+                    Upgrade Now
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const rzpBtn = document.getElementById('rzp-button-page');
+    if (rzpBtn) {
+        rzpBtn.onclick = async function(e){
+            e.preventDefault();
+            rzpBtn.innerText = "Processing...";
+            rzpBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/payments/create-order', { method: 'POST' });
+                const orderData = await response.json();
+                
+                if (response.ok) {
+                    var options = {
+                        "key": orderData.key_id,
+                        "amount": orderData.amount,
+                        "currency": orderData.currency,
+                        "name": "CreaPay Pro",
+                        "description": "Upgrade to Pro Plan",
+                        "order_id": orderData.id,
+                        "handler": function (response) {
+                            alert("Payment Successful! Welcome to Pro.");
+                            window.location.href = "{{ url_for('dashboard.index') }}";
+                        },
+                        "prefill": {
+                            "name": "{{ current_user.full_name }}",
+                            "email": "{{ current_user.email }}"
+                        },
+                        "theme": { "color": "#6C47FF" }
+                    };
+                    var rzp1 = new Razorpay(options);
+                    rzp1.on('payment.failed', function (response){
+                        alert("Payment Failed. Reason: " + response.error.description);
+                    });
+                    rzp1.open();
+                } else {
+                    alert("Error initiating payment");
+                }
+            } catch (err) {
+                alert("Network error.");
+            } finally {
+                rzpBtn.innerText = "Upgrade Now";
+                rzpBtn.disabled = false;
+            }
+        }
+    }
+</script>
+{% endblock %}

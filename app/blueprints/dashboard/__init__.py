@@ -116,3 +116,8 @@ def index():
                            total_pending=total_pending,
                            overdue_count=overdue_count,
                            total_tds=total_tds)
+
+@dashboard_bp.route('/upgrade')
+@login_required
+def upgrade():
+    return render_template('dashboard/upgrade.html')
