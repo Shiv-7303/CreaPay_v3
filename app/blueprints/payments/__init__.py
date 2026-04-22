@@ -29,8 +29,12 @@ def create_order():
         
     try:
         client = get_razorpay_client()
+        print(f"Successfully created razorpay client")
     except ValueError as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print("ERROR IN GETTING RAZORPAY CLIENT:")
+        traceback.print_exc()
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
     
     amount = current_app.config.get('PRO_PLAN_PRICE', 29900)
     
@@ -45,10 +49,15 @@ def create_order():
     }
     
     try:
+        print(f"Creating Razorpay order with data: {order_data}")
         order = client.order.create(data=order_data)
+        print(f"Successfully created order: {order}")
         return jsonify(order), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print("ERROR IN RAZORPAY CREATE ORDER:")
+        traceback.print_exc()
+        return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
 
 @payments_bp.route('/webhook', methods=['POST'])
 def webhook():
