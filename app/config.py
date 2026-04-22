@@ -23,13 +23,12 @@ class Config:
 class DevConfig(Config):
     DEBUG = True
     # In dev, we can use sqlite if postgres is not available
-    if not os.environ.get('DATABASE_URL'):
-        basedir = os.path.abspath(os.path.dirname(__file__))
-        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
+    # Fallback safely to sqlite
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
 class TestConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
 
 class ProdConfig(Config):
