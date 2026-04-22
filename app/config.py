@@ -4,6 +4,9 @@ from datetime import timedelta
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-change-in-prod'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
+    RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
     
     # Session Config
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
