@@ -20,6 +20,10 @@ class Config:
     CELERY_RESULT_BACKEND = REDIS_URL
     
     # Custom Constants
+    RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
+    RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
+    RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
+    RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
     FREE_DEAL_LIMIT = 3
     PRO_PLAN_PRICE = 29900 # paise
 
