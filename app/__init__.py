@@ -5,6 +5,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from celery import Celery
 from .config import config
+from dotenv import load_dotenv
+load_dotenv()
 
 db = SQLAlchemy()
 migrate = Migrate()
