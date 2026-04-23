@@ -1,0 +1,24 @@
+--- app/blueprints/dashboard/__init__.py
++++ app/blueprints/dashboard/__init__.py
+@@ -1,7 +1,7 @@
+ from flask import Blueprint, render_template, make_response
+ from flask_login import login_required, current_user
+ from app.models.deal import Deal
+-from app import db
++from app import db
+ from sqlalchemy import func
+ from app.utils.decorators import pro_required
+ import csv
+@@ -12,6 +12,12 @@
+ @dashboard_bp.route('/')
+ @login_required
+ def index():
++    # Check subscription expiry
++    from datetime import datetime
++    if current_user.plan == 'pro' and current_user.plan_expires_at and current_user.plan_expires_at < datetime.now():
++        current_user.plan = 'free'
++        db.session.commit()
++
+     # Fetch all active deals for user
+     deals = Deal.query.filter_by(
+         user_id=current_user.id, 

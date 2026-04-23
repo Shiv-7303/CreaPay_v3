@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        body { font-family: sans-serif; color: #333; margin: 40px; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #6C47FF; padding-bottom: 20px; }
+        .logo { max-width: 100px; max-height: 100px; }
+        .invoice-title { font-size: 24px; color: #6C47FF; font-weight: bold; }
+        .details { display: flex; justify-content: space-between; margin-top: 40px; }
+        .bill-to { width: 50%; }
+        .meta { width: 50%; text-align: right; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+        .table th { background: #EDE9FF; color: #6C47FF; padding: 10px; text-align: left; }
+        .table td { border-bottom: 1px solid #eee; padding: 10px; }
+        .totals { margin-top: 20px; text-align: right; }
+        .totals div { margin-bottom: 5px; }
+        .net-total { font-size: 18px; font-weight: bold; color: #6C47FF; margin-top: 10px; }
+        .notes { margin-top: 40px; padding: 10px; background: #fafafa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            {% if user.logo_url %}
+            <img src="{{ user.logo_url }}" class="logo" alt="Logo">
+            {% else %}
+            <div style="font-size: 24px; font-weight: bold;">{{ user.full_name }}</div>
+            {% endif %}
+            <div>{{ user.email }}</div>
+        </div>
+        <div>
+            <div class="invoice-title">INVOICE</div>
+            <div>#{{ invoice.invoice_number }}</div>
+            <div>Date: {{ invoice.generated_at.strftime('%Y-%m-%d') }}</div>
+        </div>
+    </div>
+
+    <div class="details">
+        <div class="bill-to">
+            <strong>Bill To:</strong><br>
+            {{ deal.brand.name }}<br>
+            {% if deal.brand.email %}{{ deal.brand.email }}{% endif %}
+        </div>
+        <div class="meta">
+            <strong>Due Date:</strong> {{ deal.due_date.strftime('%Y-%m-%d') }}
+        </div>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Content Creation - {{ deal.content_type | capitalize }}</td>
+                <td>₹{{ invoice.gross_amount }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <div>Gross Amount: ₹{{ invoice.gross_amount }}</div>
+        {% if invoice.tds_amount > 0 %}
+        <div>TDS (10%): -₹{{ invoice.tds_amount }}</div>
+        {% endif %}
+        <div class="net-total">Net Amount: ₹{{ invoice.net_amount }}</div>
+    </div>
+
+    {% if deal.notes %}
+    <div class="notes">
+        <strong>Notes:</strong><br>
+        {{ deal.notes }}
+    </div>
+    {% endif %}
+</body>
+</html>

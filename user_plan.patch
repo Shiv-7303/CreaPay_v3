@@ -1,0 +1,45 @@
+--- app/models/user.py
++++ app/models/user.py
+@@ -10,6 +10,7 @@
+     password_hash = db.Column(db.String(255), nullable=False)
+     full_name = db.Column(db.String(255), nullable=False)
+     plan = db.Column(db.String(20), default='free', nullable=False)
++    plan_expires_at = db.Column(db.DateTime, nullable=True)
+     logo_url = db.Column(db.Text, nullable=True)
+     gst_number = db.Column(db.String(15), nullable=True)
+     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+--- app/blueprints/dashboard/__init__.py
++++ app/blueprints/dashboard/__init__.py
+@@ -1,7 +1,7 @@
+ from flask import Blueprint, render_template, make_response
+ from flask_login import login_required, current_user
+ from app.models.deal import Deal
+-from app import db
++from app import db
+ from sqlalchemy import func
+ from app.utils.decorators import pro_required
+ import csv
+@@ -12,6 +12,12 @@
+ @dashboard_bp.route('/')
+ @login_required
+ def index():
++    # Check subscription expiry
++    from datetime import datetime
++    if current_user.plan == 'pro' and current_user.plan_expires_at and current_user.plan_expires_at < datetime.now():
++        current_user.plan = 'free'
++        db.session.commit()
++
+     # Fetch all active deals for user
+     deals = Deal.query.filter_by(
+         user_id=current_user.id, 
+--- app/blueprints/payments/__init__.py
++++ app/blueprints/payments/__init__.py
+@@ -91,7 +91,8 @@
+             status='active'
+         )
+         
+         user.plan = 'pro'
++        user.plan_expires_at = now + timedelta(days=30)
+         
+         db.session.add(sub)
+         db.session.commit()
