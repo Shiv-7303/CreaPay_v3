@@ -9,6 +9,7 @@ class Brand(db.Model):
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=True)
+    phone = db.Column(db.String(20), nullable=True)
     total_deals = db.Column(db.Integer, default=0, nullable=False)
     
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
