@@ -11,7 +11,7 @@ def send_reminder(deal_id, reminder_message=None):
     Sends an email to the brand reminding them of the payment.
     Also logs the reminder generation for WhatsApp (which is manual for MVP).
     """
-    deal = Deal.query.get(deal_id)
+    deal = db.session.get(Deal, deal_id)
     if not deal or not deal.invoice:
         return "Deal or invoice not found"
         
