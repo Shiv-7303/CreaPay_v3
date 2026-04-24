@@ -1,0 +1,156 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}Analytics{% endblock %}
+{% block header_title %}Platform Analytics{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Revenue & Usage Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4" id="stats-container">
+        <!-- Skeleton Loaders -->
+        {% for i in range(5) %}
+        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div class="h-8 bg-gray-200 rounded w-1/3"></div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Signups -->
+    <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Signups (Last 10)</h3>
+            <a href="{{ url_for('admin.users') }}" class="text-sm font-medium text-brand-purple hover:text-purple-800">View all users →</a>
+        </div>
+        <ul id="recent-signups-list" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+            <!-- Skeleton -->
+            <li class="p-4 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/3 mb-1"></div><div class="h-3 bg-gray-200 rounded w-1/4"></div></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        loadRecentSignups();
+    });
+
+    async function loadStats() {
+        try {
+            const response = await fetch('/admin/api/stats');
+            if (!response.ok) throw new Error('Failed to load stats');
+            const data = await response.json();
+
+            const container = document.getElementById('stats-container');
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 p-3 rounded-md bg-blue-100 text-blue-600">
+                           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1 truncate">Total Signups</h3>
+                            <p class="text-2xl font-bold text-gray-900">${data.total_signups}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 p-3 rounded-md bg-purple-100 text-purple-600">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1 truncate">Pro Users</h3>
+                            <p class="text-2xl font-bold text-gray-900">${data.total_pro_users}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+                     <div class="flex items-center">
+                        <div class="flex-shrink-0 p-3 rounded-md bg-green-100 text-green-600">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1 truncate">MRR</h3>
+                            <p class="text-2xl font-bold text-brand-purple">₹${data.mrr}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 p-3 rounded-md bg-yellow-100 text-yellow-600">
+                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1 truncate">Total Deals</h3>
+                            <p class="text-2xl font-bold text-gray-900">${data.total_deals_created}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 p-3 rounded-md bg-indigo-100 text-indigo-600">
+                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div class="ml-4 w-0 flex-1">
+                            <h3 class="text-sm font-medium text-gray-500 mb-1 truncate">Active Deals</h3>
+                            <p class="text-2xl font-bold text-gray-900">${data.active_deals}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function loadRecentSignups() {
+        try {
+            const response = await fetch('/admin/api/users?limit=10');
+            if (!response.ok) throw new Error('Failed to load users');
+            const users = await response.json();
+
+            const recentList = document.getElementById('recent-signups-list');
+            recentList.innerHTML = '';
+
+            if (users.length === 0) {
+                recentList.innerHTML = '<li class="p-6 text-center text-sm text-gray-500">No signups yet.</li>';
+                return;
+            }
+
+            users.forEach(user => {
+                const date = new Date(user.joined_date);
+                const formattedDate = date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                const planBadge = user.plan === 'pro'
+                    ? `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-brand-light text-brand-purple">Pro</span>`
+                    : `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Free</span>`;
+
+                recentList.innerHTML += `
+                    <li class="p-4 hover:bg-gray-50 transition">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-brand-light flex items-center justify-center text-brand-purple font-bold">
+                                    ${user.full_name.charAt(0).toUpperCase()}
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-900">${user.full_name}</p>
+                                    <p class="text-sm text-gray-500">${user.email}</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end space-y-1">
+                                ${planBadge}
+                                <span class="text-xs text-gray-500">Joined ${formattedDate}</span>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+</script>
+{% endblock %}

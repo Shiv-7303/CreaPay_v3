@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} - CreaPay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                brand: {
+                  purple: '#6C47FF',
+                  light: '#EDE9FF'
+                }
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 h-screen overflow-hidden flex font-sans antialiased">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col z-20">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <span class="text-2xl font-bold text-brand-purple tracking-tight">CreaPay Admin</span>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="{{ url_for('admin.analytics') }}" class="flex items-center px-3 py-2 rounded-md font-medium text-sm transition {% if request.endpoint == 'admin.analytics' %}bg-brand-light text-brand-purple{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Analytics
+            </a>
+            <a href="{{ url_for('admin.users') }}" class="flex items-center px-3 py-2 rounded-md font-medium text-sm transition {% if request.endpoint == 'admin.users' %}bg-brand-light text-brand-purple{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Users
+            </a>
+            <a href="{{ url_for('admin.deals') }}" class="flex items-center px-3 py-2 rounded-md font-medium text-sm transition {% if request.endpoint == 'admin.deals' %}bg-brand-light text-brand-purple{% else %}text-gray-700 hover:bg-gray-100 hover:text-gray-900{% endif %}">
+                <svg class="mr-3 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Deals
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <a href="{{ url_for('dashboard.index') }}" class="flex items-center text-sm font-medium text-gray-600 hover:text-brand-purple mb-3">
+                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Exit to User Dashboard
+            </a>
+            <form action="{{ url_for('auth.logout') }}" method="POST">
+                <button type="submit" class="w-full text-left flex items-center text-sm font-medium text-red-600 hover:text-red-800 transition">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout Admin
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-10 shadow-sm">
+            <h1 class="text-xl font-semibold text-gray-800">{% block header_title %}Overview{% endblock %}</h1>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500 hidden sm:inline-block">Logged in as: <strong>{{ current_user.email }}</strong></span>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 relative">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="mb-6 space-y-2 absolute top-6 right-6 z-50 min-w-[300px]" id="flash-messages">
+                {% for category, message in messages %}
+                  <div class="{% if category == 'error' %}bg-red-50 text-red-700 border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border-green-200{% else %}bg-blue-50 text-blue-700 border-blue-200{% endif %} p-4 rounded-lg border shadow-md text-sm font-medium flex justify-between items-start">
+                        <span>{{ message }}</span>
+                        <button onclick="this.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                  </div>
+                {% endfor %}
+                </div>
+                <script>
+                    setTimeout(() => {
+                        const flashDiv = document.getElementById('flash-messages');
+                        if (flashDiv) {
+                            flashDiv.style.opacity = '0';
+                            flashDiv.style.transition = 'opacity 0.5s ease-out';
+                            setTimeout(() => flashDiv.remove(), 500);
+                        }
+                    }, 5000);
+                </script>
+              {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

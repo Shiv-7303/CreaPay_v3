@@ -1,0 +1,107 @@
+{% extends "admin/layout.html" %}
+
+{% block title %}User Management{% endblock %}
+{% block header_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <div class="flex space-x-2">
+            <a href="{{ url_for('admin.users', plan='all') }}" class="px-3 py-1.5 rounded-md text-sm font-medium {% if current_filter == 'all' %}bg-brand-purple text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}">All</a>
+            <a href="{{ url_for('admin.users', plan='free') }}" class="px-3 py-1.5 rounded-md text-sm font-medium {% if current_filter == 'free' %}bg-brand-purple text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}">Free</a>
+            <a href="{{ url_for('admin.users', plan='pro') }}" class="px-3 py-1.5 rounded-md text-sm font-medium {% if current_filter == 'pro' %}bg-brand-purple text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}">Pro</a>
+            <a href="{{ url_for('admin.users', plan='suspended') }}" class="px-3 py-1.5 rounded-md text-sm font-medium {% if current_filter == 'suspended' %}bg-brand-purple text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}">Suspended</a>
+            <a href="{{ url_for('admin.users', plan='deleted') }}" class="px-3 py-1.5 rounded-md text-sm font-medium {% if current_filter == 'deleted' %}bg-brand-purple text-white{% else %}bg-white text-gray-700 border border-gray-300 hover:bg-gray-50{% endif %}">Deleted</a>
+        </div>
+    </div>
+
+    <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email / Name</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for user in users %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-brand-light flex items-center justify-center text-brand-purple font-bold text-sm">
+                                {{ user.full_name[0]|upper }}
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">{{ user.email }}</div>
+                                <div class="text-sm text-gray-500">{{ user.full_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form action="{{ url_for('admin.set_user_plan', id=user.id, plan=current_filter) }}" method="POST" class="flex items-center space-x-2">
+                            <select name="plan" onchange="this.form.submit()" class="text-sm rounded-md border-gray-300 focus:ring-brand-purple focus:border-brand-purple py-1 pl-2 pr-8 {% if user.plan == 'pro' %}bg-purple-50 text-purple-700{% endif %}" {% if user.deleted_at %}disabled{% endif %}>
+                                <option value="free" {% if user.plan == 'free' %}selected{% endif %}>Free</option>
+                                <option value="pro" {% if user.plan == 'pro' %}selected{% endif %}>Pro</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        {% if user.deleted_at %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Deleted</span>
+                        {% elif not user.is_active %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Suspended</span>
+                        {% else %}
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2 flex justify-end">
+
+                        {% if not user.deleted_at and user.id != current_user.id %}
+                        <form action="{{ url_for('admin.impersonate', id=user.id) }}" method="POST" class="inline" title="Login as user">
+                            <button type="submit" class="text-brand-purple hover:text-purple-900">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if user.deleted_at %}
+                            <form action="{{ url_for('admin.restore_user', id=user.id, plan=current_filter) }}" method="POST" class="inline">
+                                <button type="submit" class="text-green-600 hover:text-green-900 font-medium">Restore</button>
+                            </form>
+                        {% else %}
+                            {% if user.is_active %}
+                                <form action="{{ url_for('admin.suspend_user', id=user.id, plan=current_filter) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-yellow-600 hover:text-yellow-900 font-medium">Suspend</button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('admin.activate_user', id=user.id, plan=current_filter) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-green-600 hover:text-green-900 font-medium">Activate</button>
+                                </form>
+                            {% endif %}
+
+                            <form action="{{ url_for('admin.delete_user', id=user.id, plan=current_filter) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                <button type="submit" class="text-red-600 hover:text-red-900">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
+                        No users found for this filter.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
