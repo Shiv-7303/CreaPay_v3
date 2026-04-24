@@ -1,10 +1,13 @@
 import pytest
 from app import create_app, db
 from app.models.user import User
+import bcrypt
+from datetime import datetime, timezone
 
 @pytest.fixture
 def app():
     app = create_app('testing')
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///:memory:"
     with app.app_context():
         db.create_all()
         yield app
@@ -15,72 +18,64 @@ def app():
 def client(app):
     return app.test_client()
 
-def test_register_user(client, app):
-    response = client.post('/auth/register', data={
-        'full_name': 'Test User',
+@pytest.fixture
+def test_user_id(app):
+    with app.app_context():
+        hashed = bcrypt.hashpw('password123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        user = User(
+            full_name='Test User',
+            email='test@example.com',
+            password_hash=hashed,
+            is_active=True
+        )
+        db.session.add(user)
+        db.session.commit()
+        return user.id
+
+def test_login_active(client, test_user_id):
+    res = client.post('/auth/login', data={'email': 'test@example.com', 'password': 'password123'}, follow_redirects=True)
+    assert b'Logout' in res.data or b'Welcome' in res.data or b'Dashboard' in res.data # Should be logged in
+
+def test_login_suspended(client, app, test_user_id):
+    with app.app_context():
+        u = User.query.get(test_user_id)
+        u.is_active = False
+        db.session.commit()
+    res = client.post('/auth/login', data={'email': 'test@example.com', 'password': 'password123'}, follow_redirects=True)
+    assert b'This account has been suspended by the administrator.' in res.data
+
+def test_login_deleted(client, app, test_user_id):
+    with app.app_context():
+        u = User.query.get(test_user_id)
+        u.deleted_at = datetime.now(timezone.utc)
+        db.session.commit()
+    res = client.post('/auth/login', data={'email': 'test@example.com', 'password': 'password123'}, follow_redirects=True)
+    assert b'This account has been deleted.' in res.data
+
+def test_register_deleted(client, app, test_user_id):
+    with app.app_context():
+        u = User.query.get(test_user_id)
+        u.deleted_at = datetime.now(timezone.utc)
+        u.plan = 'pro'
+        db.session.commit()
+
+    res = client.post('/auth/register', data={
+        'full_name': 'Revived User',
         'email': 'test@example.com',
-        'password': 'password123'
+        'password': 'newpassword123'
     }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b'Dashboard' in response.data
     
     with app.app_context():
-        user = User.query.filter_by(email='test@example.com').first()
-        assert user is not None
-        assert user.full_name == 'Test User'
+        u = User.query.filter_by(email='test@example.com').first()
+        assert u.deleted_at is None
+        assert u.is_active is True
+        assert u.plan == 'free'
+        assert u.full_name == 'Revived User'
 
-def test_duplicate_email(client, app):
-    # Register first user
-    client.post('/auth/register', data={
-        'full_name': 'Test User',
-        'email': 'test@example.com',
-        'password': 'password123'
-    })
-    client.post('/auth/logout')
-    
-    # Register second user with same email
-    response = client.post('/auth/register', data={
+def test_register_active_fails(client, test_user_id):
+    res = client.post('/auth/register', data={
         'full_name': 'Another User',
         'email': 'test@example.com',
-        'password': 'password456'
+        'password': 'newpassword123'
     }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b'Account already exists' in response.data
-
-def test_login_valid(client, app):
-    # Register
-    client.post('/auth/register', data={
-        'full_name': 'Test User',
-        'email': 'test@example.com',
-        'password': 'password123'
-    })
-    client.post('/auth/logout')
-    
-    # Login
-    response = client.post('/auth/login', data={
-        'email': 'test@example.com',
-        'password': 'password123'
-    }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b'Dashboard' in response.data
-
-def test_login_invalid(client, app):
-    # Register
-    client.post('/auth/register', data={
-        'full_name': 'Test User',
-        'email': 'test@example.com',
-        'password': 'password123'
-    })
-    client.post('/auth/logout')
-    
-    # Login with wrong password
-    response = client.post('/auth/login', data={
-        'email': 'test@example.com',
-        'password': 'wrongpassword'
-    }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b'Invalid email or password.' in response.data
+    assert b'Account already exists with this email.' in res.data

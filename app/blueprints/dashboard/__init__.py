@@ -121,3 +121,29 @@ def index():
 @login_required
 def upgrade():
     return render_template('dashboard/upgrade.html')
+
+
+@dashboard_bp.route('/monthly-report')
+@login_required
+@pro_required
+def monthly_report():
+    deals = Deal.query.filter_by(user_id=current_user.id, deleted_at=None).all()
+
+    report = {}
+    for deal in deals:
+        month = deal.created_at.strftime('%Y-%m')
+        if month not in report:
+            report[month] = {
+                'month': month,
+                'earned': 0,
+                'pending': 0
+            }
+
+        if deal.status == 'paid':
+            report[month]['earned'] += float(deal.amount)
+        else:
+            report[month]['pending'] += float(deal.amount)
+
+    # Sort by month desc
+    sorted_report = sorted(report.values(), key=lambda x: x['month'], reverse=True)
+    return jsonify(sorted_report)
