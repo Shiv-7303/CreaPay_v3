@@ -61,13 +61,19 @@ def non_admin_client(client, app):
 
 def test_admin_panel_access_non_admin(non_admin_client):
     res = non_admin_client.get('/admin/')
+    assert res.status_code == 302
+    assert res.headers['Location'] == '/dashboard/'
+
+def test_admin_api_access_non_admin(non_admin_client):
+    res = non_admin_client.get('/admin/api/users')
     assert res.status_code == 403
     assert res.json['error'] == 'Admin access required'
 
 def test_admin_panel_access_admin(admin_client):
     client, _ = admin_client
     res = client.get('/admin/')
-    assert res.status_code == 200
+    assert res.status_code == 302
+    assert res.headers['Location'] == '/admin/analytics'
 
 def test_admin_stats(admin_client, app):
     client, _ = admin_client

@@ -17,9 +17,13 @@ def pro_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        from flask import flash, request
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
         if not getattr(current_user, 'is_admin', False):
-            return jsonify({'error': 'Admin access required'}), 403
+            if request.path.startswith('/admin/api'):
+                return jsonify({'error': 'Admin access required'}), 403
+            flash("Admin access required.", "error")
+            return redirect(url_for('dashboard.index'))
         return f(*args, **kwargs)
     return decorated_function
