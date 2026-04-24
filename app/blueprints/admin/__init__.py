@@ -34,12 +34,6 @@ def users():
         query = query.filter_by(plan='pro')
     elif plan_filter == 'suspended':
         query = query.filter_by(is_active=False)
-    elif plan_filter == 'deleted':
-        query = query.filter(User.deleted_at.isnot(None))
-        
-    # By default, don't show deleted users unless requested
-    if plan_filter != 'deleted':
-        query = query.filter(User.deleted_at.is_(None))
         
     users = query.order_by(User.created_at.desc()).all()
     return render_template('admin/users.html', users=users, current_filter=plan_filter)
@@ -87,27 +81,42 @@ def activate_user(id):
 @login_required
 @admin_required
 def delete_user(id):
-    from datetime import datetime, timezone
     user = User.query.get_or_404(id)
-    user.deleted_at = datetime.now(timezone.utc)
-    user.is_active = False
-    log = ActivityLog(user_id=current_user.id, action=f"Soft deleted user {user.email}")
+    email = user.email
+    
+    # Hard delete: Manually delete related records to avoid foreign key constraints
+    from app.models.deal import Deal
+    from app.models.brand import Brand
+    from app.models.invoice import Invoice
+    from app.models.subscription import Subscription
+    from app.models.activity_log import ActivityLog
+    
+    # 1. Delete Invoices (linked to deals)
+    deals = Deal.query.filter_by(user_id=user.id).all()
+    for deal in deals:
+        Invoice.query.filter_by(deal_id=deal.id).delete()
+    
+    # 2. Delete Deals
+    Deal.query.filter_by(user_id=user.id).delete()
+    
+    # 3. Delete Brands
+    Brand.query.filter_by(user_id=user.id).delete()
+    
+    # 4. Delete Subscriptions
+    Subscription.query.filter_by(user_id=user.id).delete()
+    
+    # 5. Delete Activity Logs
+    ActivityLog.query.filter_by(user_id=user.id).delete()
+    
+    # Finally, delete user
+    db.session.delete(user)
+    
+    # Log this action using the current admin user
+    log = ActivityLog(user_id=current_user.id, action=f"Hard deleted user {email} and all their data")
     db.session.add(log)
+    
     db.session.commit()
-    flash(f"Deleted {user.email}", "success")
-    return redirect(url_for('admin.users', plan=request.args.get('plan', 'all')))
-
-@admin_bp.route('/users/<id>/restore', methods=['POST'])
-@login_required
-@admin_required
-def restore_user(id):
-    user = User.query.get_or_404(id)
-    user.deleted_at = None
-    user.is_active = True
-    log = ActivityLog(user_id=current_user.id, action=f"Restored user {user.email}")
-    db.session.add(log)
-    db.session.commit()
-    flash(f"Restored {user.email}", "success")
+    flash(f"Completely deleted {email} and all associated data.", "success")
     return redirect(url_for('admin.users', plan=request.args.get('plan', 'all')))
 
 @admin_bp.route('/deals', methods=['GET'])

@@ -33,26 +33,11 @@ def register():
             password_hash=password_hash
         )
         
-        # Check if user already exists
+        # Since we use hard deletes, existing email means active/suspended user
         existing_user = User.query.filter_by(email=email).first()
-        
         if existing_user:
-            if existing_user.deleted_at is not None:
-                # User was deleted, let's revive their account as a fresh one
-                existing_user.full_name = full_name
-                existing_user.password_hash = password_hash
-                existing_user.deleted_at = None
-                existing_user.is_active = True
-                existing_user.plan = 'free' # reset plan
-                
-                db.session.commit()
-                login_user(existing_user)
-                flash("Registration successful! (Account restored)", "success")
-                return redirect(url_for('dashboard.index'))
-            else:
-                # Active/suspended user already exists with this email
-                flash("Account already exists with this email.", "error")
-                return render_template('auth/register.html')
+            flash("Account already exists with this email.", "error")
+            return render_template('auth/register.html')
         
         try:
             db.session.add(new_user)
@@ -80,10 +65,6 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
-            if user.deleted_at is not None:
-                flash("This account has been deleted.", "error")
-                return render_template('auth/login.html')
-            
             if not user.is_active:
                 flash("This account has been suspended by the administrator.", "error")
                 return render_template('auth/login.html')
