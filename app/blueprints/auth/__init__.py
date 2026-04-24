@@ -125,11 +125,34 @@ def logout():
 @auth_bp.route('/dev/toggle-pro', methods=['GET'])
 @login_required
 def toggle_pro():
+    from app.models.subscription import Subscription
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+
     if current_user.plan == 'pro':
         current_user.plan = 'free'
+        current_user.plan_expires_at = None
+        # Cancel active subscriptions
+        active_subs = Subscription.query.filter_by(user_id=current_user.id, status='active').all()
+        for sub in active_subs:
+            sub.status = 'cancelled'
         flash("You are now a Free user.", "info")
     else:
         current_user.plan = 'pro'
+        current_user.plan_expires_at = now + timedelta(days=30)
+        # Create a mock subscription record
+        sub = Subscription(
+            user_id=current_user.id,
+            razorpay_payment_id='dev_toggle_upgrade',
+            plan='pro',
+            amount_paid=0.0,
+            starts_at=now,
+            expires_at=current_user.plan_expires_at,
+            status='active'
+        )
+        db.session.add(sub)
         flash("You are now a Pro user for testing.", "success")
+
     db.session.commit()
     return redirect(url_for('dashboard.index'))

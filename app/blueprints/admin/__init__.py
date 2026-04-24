@@ -42,15 +42,44 @@ def users():
 @login_required
 @admin_required
 def set_user_plan(id):
+    from app.models.subscription import Subscription
+    from datetime import datetime, timedelta, timezone
+
     user = User.query.get_or_404(id)
     new_plan = request.form.get('plan')
-    if new_plan in ['free', 'pro']:
+
+    if new_plan in ['free', 'pro'] and new_plan != user.plan:
         old_plan = user.plan
         user.plan = new_plan
+
+        now = datetime.now(timezone.utc)
+
+        if new_plan == 'pro':
+            # Create a manual subscription record
+            user.plan_expires_at = now + timedelta(days=30)
+            sub = Subscription(
+                user_id=user.id,
+                razorpay_payment_id='manual_admin_upgrade',
+                plan='pro',
+                amount_paid=0.0,
+                starts_at=now,
+                expires_at=user.plan_expires_at,
+                status='active'
+            )
+            db.session.add(sub)
+        else:
+            # Downgrading to free
+            user.plan_expires_at = None
+            # Cancel active subscriptions
+            active_subs = Subscription.query.filter_by(user_id=user.id, status='active').all()
+            for sub in active_subs:
+                sub.status = 'cancelled'
+
         log = ActivityLog(user_id=current_user.id, action=f"Changed plan for {user.email} from {old_plan} to {new_plan}")
         db.session.add(log)
         db.session.commit()
         flash(f"Updated plan for {user.email} to {new_plan}", "success")
+
     return redirect(url_for('admin.users', plan=request.args.get('plan', 'all')))
 
 @admin_bp.route('/users/<id>/suspend', methods=['POST'])
