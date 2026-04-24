@@ -52,6 +52,7 @@ def create_app(config_name='default'):
     from app.models.brand import Brand
     from app.models.invoice import Invoice
     from app.models.subscription import Subscription
+    from app.models.activity_log import ActivityLog
 
     import sentry_sdk
     from sentry_sdk.integrations.flask import FlaskIntegration

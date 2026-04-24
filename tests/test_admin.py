@@ -72,7 +72,8 @@ def test_admin_api_access_non_admin(non_admin_client):
 def test_admin_panel_access_admin(admin_client):
     client, _ = admin_client
     res = client.get('/admin/')
-    assert res.status_code == 200
+    assert res.status_code == 302
+    assert res.headers['Location'] == '/admin/analytics'
 
 def test_admin_stats(admin_client, app):
     client, _ = admin_client
