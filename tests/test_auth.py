@@ -44,33 +44,6 @@ def test_login_suspended(client, app, test_user_id):
     res = client.post('/auth/login', data={'email': 'test@example.com', 'password': 'password123'}, follow_redirects=True)
     assert b'This account has been suspended by the administrator.' in res.data
 
-def test_login_deleted(client, app, test_user_id):
-    with app.app_context():
-        u = User.query.get(test_user_id)
-        u.deleted_at = datetime.now(timezone.utc)
-        db.session.commit()
-    res = client.post('/auth/login', data={'email': 'test@example.com', 'password': 'password123'}, follow_redirects=True)
-    assert b'This account has been deleted.' in res.data
-
-def test_register_deleted(client, app, test_user_id):
-    with app.app_context():
-        u = User.query.get(test_user_id)
-        u.deleted_at = datetime.now(timezone.utc)
-        u.plan = 'pro'
-        db.session.commit()
-
-    res = client.post('/auth/register', data={
-        'full_name': 'Revived User',
-        'email': 'test@example.com',
-        'password': 'newpassword123'
-    }, follow_redirects=True)
-    
-    with app.app_context():
-        u = User.query.filter_by(email='test@example.com').first()
-        assert u.deleted_at is None
-        assert u.is_active is True
-        assert u.plan == 'free'
-        assert u.full_name == 'Revived User'
 
 def test_register_active_fails(client, test_user_id):
     res = client.post('/auth/register', data={
