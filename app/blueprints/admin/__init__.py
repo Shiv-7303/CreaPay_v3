@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, render_template, request
 from flask_login import login_required
 from app.utils.decorators import admin_required
 from app.models.user import User
@@ -11,15 +11,20 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @admin_required
 def index():
-    # Will be a proper HTML template in production, matching checklist
-    # For now, API returning data as the spec also mentions /admin/api/... endpoints
-    return jsonify({"message": "Admin dashboard"}), 200
+    return render_template('admin/index.html')
 
 @admin_bp.route('/api/users', methods=['GET'])
 @login_required
 @admin_required
 def api_users():
-    users = User.query.order_by(User.created_at.desc()).all()
+    plan_filter = request.args.get('plan', 'all').lower()
+
+    query = User.query
+    if plan_filter in ['free', 'pro']:
+        query = query.filter_by(plan=plan_filter)
+
+    users = query.order_by(User.created_at.desc()).all()
+
     return jsonify([{
         'id': u.id,
         'email': u.email,
